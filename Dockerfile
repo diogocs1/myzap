@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y \
     apt-transport-https \
     libgbm-dev \
     && apt-get install curl -y \
-    && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+    && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
     && apt-get install -y \
     git \
     nodejs

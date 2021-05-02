@@ -209,61 +209,65 @@ module.exports = class Sessions {
     static async setup(sessionName) {
         var session = Sessions.getSession(sessionName);
 
-        await session.client.then(client => {
-            client.onStateChange(state => {
-                session.state = state;
-                if (state == "CONNECTED") {
-                    if (Sessions.options.jsonbinio_secret_key !== undefined && session.browserSessionToken == undefined) {//se informou secret key pra salvar na nuvem
-                        setTimeout(async () => {
-                            console.log("gravando token na nuvem...");
-                            //salva dados do token da sessão na nuvem
-                            const browserSessionToken = await client.getSessionTokenBrowser();
-                            var data = JSON.stringify(browserSessionToken);
-                            var config = {
-                                method: 'put',
-                                url: 'https://api.jsonbin.io/b/' + Sessions.options.jsonbinio_bin_id,
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'secret-key': Sessions.options.jsonbinio_secret_key,
-                                    'versioning': 'false'
-                                },
-                                data: data
-                            };
-                            await axios(config)
-                                .then(function (response) {
-                                    console.log(JSON.stringify(response.data));
-                                })
-                                .catch(function (error) {
-                                    console.log(error);
-                                });
-                        }, 2000);
-                    }//if jsonbinio_secret_key
-                }//if CONNECTED
-                console.log("session.state: " + state);
-            }); //.then((client) => Sessions.startProcess(client));
-            client.onMessage(async (message) => {
-                var session = Sessions.getSession(sessionName);
-                if (session.hook != null) {
-                    var config = {
-                        method: 'post',
-                        url: session.hook,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        data: message
-                    };
-                    await axios(config)
-                        .then(function (response) {
-                            console.log(JSON.stringify(response.data));
-                        })
-                        .catch(function (error) {
-                            console.log(error);
-                        });
-                } else if (message.body == "TESTEBOT") {
-                    client.sendText(message.from, 'Hello\nfriend!');
-                }
+        try {
+            await session.client.then(client => {
+                client.onStateChange(state => {
+                    session.state = state;
+                    if (state == "CONNECTED") {
+                        if (Sessions.options.jsonbinio_secret_key !== undefined && session.browserSessionToken == undefined) {//se informou secret key pra salvar na nuvem
+                            setTimeout(async () => {
+                                console.log("gravando token na nuvem...");
+                                //salva dados do token da sessão na nuvem
+                                const browserSessionToken = await client.getSessionTokenBrowser();
+                                var data = JSON.stringify(browserSessionToken);
+                                var config = {
+                                    method: 'put',
+                                    url: 'https://api.jsonbin.io/b/' + Sessions.options.jsonbinio_bin_id,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'secret-key': Sessions.options.jsonbinio_secret_key,
+                                        'versioning': 'false'
+                                    },
+                                    data: data
+                                };
+                                await axios(config)
+                                    .then(function (response) {
+                                        console.log(JSON.stringify(response.data));
+                                    })
+                                    .catch(function (error) {
+                                        console.log(error);
+                                    });
+                            }, 2000);
+                        }//if jsonbinio_secret_key
+                    }//if CONNECTED
+                    console.log("session.state: " + state);
+                }); //.then((client) => Sessions.startProcess(client));
+                client.onMessage(async (message) => {
+                    var session = Sessions.getSession(sessionName);
+                    if (session.hook != null) {
+                        var config = {
+                            method: 'post',
+                            url: session.hook,
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            data: message
+                        };
+                        await axios(config)
+                            .then(function (response) {
+                                console.log(JSON.stringify(response.data));
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                            });
+                    } else if (message.body == "TESTEBOT") {
+                        client.sendText(message.from, 'Hello\nfriend!');
+                    }
+                });
             });
-        });
+        } catch (e) {
+            console.log(e);
+        }
     } //setup
 
     static async closeSession(sessionName) {

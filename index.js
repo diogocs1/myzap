@@ -1,11 +1,34 @@
 const util = require('util');
-const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
 const https = require('https');
 const express = require("express");
 const cors = require('cors');
 const Sessions = require("./sessions");
 require('dotenv').config();
+
+// Adding Venom auto-update
+const exec = require('child_process');
+
+function execute(command){
+  let version = exec.execSync(command);
+  return version.toString();
+}
+
+function update_last_version(){
+  let local_version = parseInt(execute("npm list -l --depth=0 | awk -F@ '/venom-bot/ { print $2}'").split('\n')[0].split('.').join(''));
+  let remote_version = parseInt(execute("npm show venom-bot version").split('\n')[0].split('.').join(''));
+  if (local_version < remote_version) {
+    console.log('VERSÃO DESATUALIZADA');
+    console.log('ATUALIZANDO VERSÃO PARA ' + execute("npm show venom-bot version").split('\n')[0]);
+    return execute("npm update venom-bot");
+  }else{
+    console.log('VERSÃO ATUALIZADA');
+  }
+}
+update_last_version();
+
+// Continue default myzap code
+exec = util.promisify(require('child_process').exec);
 
 var app = express();
 

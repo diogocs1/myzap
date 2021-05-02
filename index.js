@@ -7,7 +7,7 @@ const Sessions = require("./sessions");
 require('dotenv').config();
 
 // Adding Venom auto-update
-const exec = require('child_process');
+let exec = require('child_process');
 
 function execute(command){
   let version = exec.execSync(command);
